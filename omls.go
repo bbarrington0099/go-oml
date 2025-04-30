@@ -216,3 +216,34 @@ func LoadOmls() []*oml {
 func ReleaseOmls(omls []*oml) {
 	omls = nil
 }
+
+func AddOmlEntry(omls []*oml, keyword, literal, ref string) []*oml {
+	oml := newOml(keyword, literal, ref)
+	omls = append(omls, oml)
+	return omls
+}
+
+func AddOml(omls []*oml, oml *oml) []*oml {
+	omls = append(omls, oml)
+	return omls
+}
+
+func RemoveOml(omls []*oml, keyword string) []*oml {
+	for i, oml := range omls {
+		if oml.getKeyword() == keyword {
+			omls = append(omls[:i], omls[i+1:]...)
+			break
+		}
+	}
+	return omls
+}
+
+func UpdateOml(omls []*oml, currentKeyword, newKeyword, newLiteral, newRef string) []*oml {
+	for i, oml := range omls {
+		if oml.getKeyword() == currentKeyword {
+			omls[i] = newOml(newKeyword, newLiteral, newRef)
+			break
+		}
+	}
+	return omls
+}

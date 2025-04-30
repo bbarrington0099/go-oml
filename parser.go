@@ -5,7 +5,7 @@ package gooml
 	parseOmlTracker := newOMLTracker()
    }
 
-   func parseOml(omls []*oml, input string) (ouput string, err error) {
+   func parseOmlEntry(omls []*oml, input string) (ouput string, err error) {
 	parseOmlTracker := newOMLTracker()
    }
 */
