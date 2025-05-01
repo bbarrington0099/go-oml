@@ -1,45 +1,68 @@
 package gooml
 
+import (
+	"fmt"
+)
+
 type omlTracker struct {
-	activeMarkups map[string]int
+	activeOmls map[oml]bool
 }
 
 func newOMLTracker() *omlTracker {
 	return &omlTracker{
-		activeMarkups: make(map[string]int),
+		activeOmls: make(map[oml]bool),
 	}
 }
 
-func (t *omlTracker) addMarkup(markup string) {
-	if _, exists := t.activeMarkups[markup]; !exists {
-		t.activeMarkups[markup] = 0
+func (t *omlTracker) addActiveOml(activeOml oml) (err error) {
+	if active, exists := t.activeOmls[activeOml]; !exists {
+		t.activeOmls[activeOml] = true
+	} else if active {
+		err = fmt.Errorf("oml %s is already active", activeOml)
 	}
-	t.activeMarkups[markup]++
+	return
 }
 
-func (t *omlTracker) removeMarkup(markup string) {
-	if count, exists := t.activeMarkups[markup]; exists {
-		if count > 1 {
-			t.activeMarkups[markup]--
-		} else {
-			delete(t.activeMarkups, markup)
-		}
+func (t *omlTracker) closeActiveOml(activeOml oml) (err error) {
+	if _, exists := t.activeOmls[activeOml]; !exists {
+		err = fmt.Errorf("oml %s is not active", activeOml)
+	} else {
+		t.activeOmls[activeOml] = false
+	}
+	return
+}
+
+func (t *omlTracker) removeActiveOml(activeOml oml) {
+	if _, exists := t.activeOmls[activeOml]; exists {
+		delete(t.activeOmls, activeOml)
 	}
 }
 
-func (t *omlTracker) isMarkupActive(markup string) bool {
-	_, exists := t.activeMarkups[markup]
-	return exists
+func (t *omlTracker) isActiveOml(activeOml oml) bool {
+	active, exists := t.activeOmls[activeOml]
+	return exists && active
 }
 
-func (t *omlTracker) getActiveMarkups() ([]string, int) {
-	activeMarkups := make([]string, 0, len(t.activeMarkups))
-	for markup := range t.activeMarkups {
-		activeMarkups = append(activeMarkups, markup)
+func (t *omlTracker) getActiveOmls() ([]oml, int) {
+	activeOmlCount := len(t.activeOmls)
+	if activeOmlCount == 0 {
+		return nil, 0
 	}
-	return activeMarkups, len(activeMarkups)
+
+	activeOmls := make([]oml, 0, activeOmlCount)
+	for activeOml := range t.activeOmls {
+		activeOmls = append(activeOmls, activeOml)
+	}
+	return activeOmls, activeOmlCount
 }
 
 func (t *omlTracker) clear() {
-	t.activeMarkups = make(map[string]int)
+	t.activeOmls = make(map[oml]bool)
+}
+
+func (t *omlTracker) release() {
+	for activeOml := range t.activeOmls {
+		t.removeActiveOml(activeOml)
+	}
+	t = nil
 }

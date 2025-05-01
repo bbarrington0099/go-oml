@@ -1,5 +1,10 @@
 package gooml
 
+import (
+	"fmt"
+	"slices"
+)
+
 // genDecoratorCombinations generates decorator combinations with a max of maxCombo decorators
 func genDecoratorCombinations(decorators []*oml, maxCombo int) []struct {
 	keyword string
@@ -217,15 +222,43 @@ func ReleaseOmls(omls []*oml) {
 	omls = nil
 }
 
-func AddOmlEntry(omls []*oml, keyword, literal, ref string) []*oml {
+func AddOml(existingOmls []*oml, keyword, literal, ref string) (omls []*oml, err error) {
+	if keyword == "" {
+		err = fmt.Errorf("keyword cannot be empty")
+		return
+	}
+	if literal == "" {
+		err = fmt.Errorf("literal cannot be empty")
+		return
+	}
+	if ref == "" {
+		err = fmt.Errorf("ref cannot be empty")
+		return
+	}
+
+	if slices.ContainsFunc(existingOmls, func(o *oml) bool {
+		return o.getKeyword() == keyword
+	}) {
+		err = fmt.Errorf("oml with keyword %s already exists", keyword)
+		return
+	}
+	if slices.ContainsFunc(existingOmls, func(o *oml) bool {
+		return o.getRef() == ref
+	}) {
+		err = fmt.Errorf("oml with ref %s already exists", ref)
+		return
+	}
+	if slices.ContainsFunc(existingOmls, func(o *oml) bool {
+		return o.getLiteral() == literal
+	}) {
+		err = fmt.Errorf("oml with literal %s already exists", literal)
+		return
+	}
+	// TODO: Allow for multiple omls with the same literal by removing the literal exists error having oml-tracker track based on literals while keeping the keywords & refs to know what to replace(e.g. <Go>Content<lang>, if both have the same literal lang can close Go)
+
 	oml := newOml(keyword, literal, ref)
 	omls = append(omls, oml)
-	return omls
-}
-
-func AddOml(omls []*oml, oml *oml) []*oml {
-	omls = append(omls, oml)
-	return omls
+	return
 }
 
 func RemoveOml(omls []*oml, keyword string) []*oml {
